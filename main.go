@@ -49,6 +49,26 @@ func auth(w http.ResponseWriter, r *http.Request) {
 
 // Scrape finds and serializes the data from Lakehead's
 // site.
-func Scrape(url string) []*Match {
-	return nil
+func Scrape(url string) (Matches []*Match, err error) {
+
+	res, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	root, err := html.Parse(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Yhat's package expects atomic values for tags, see
+	// https://godoc.org/golang.org/x/net/html/atom if you
+	// need a different tag.
+	data := scrape.FindAll(root, scrape.ByTag(0x10502))
+	// matches := make([]*Match, len(data))
+	for _, match := range data {
+		fmt.Println("Match: ", match)
+	}
+
+	return nil, nil
 }

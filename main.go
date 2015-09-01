@@ -24,11 +24,14 @@ type Match struct {
 
 func init() {
 	http.HandleFunc("/", auth)
+	http.HandleFunc("/scrape", HomeHandler)
 }
 
 // HomeHandler handles the home page
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, world!")
+
+	fmt.Fprint(w, "Hello, Benny world!")
+	Scrape("http://timetable.lakeheadu.ca/2015FW_UG_TBAY/phys.html", r)
 }
 
 func auth(w http.ResponseWriter, r *http.Request) {
@@ -49,15 +52,20 @@ func auth(w http.ResponseWriter, r *http.Request) {
 
 // Scrape finds and serializes the data from Lakehead's
 // site.
-func Scrape(url string) (Matches []*Match, err error) {
+func Scrape(url string, r *http.Request) (Matches []*Match, err error) {
+
+	// Required for logging
+	c := appengine.NewContext(r)
 
 	res, err := http.Get(url)
 	if err != nil {
+		fmt.Println("Error :", err)
 		return nil, err
 	}
 
 	root, err := html.Parse(res.Body)
 	if err != nil {
+		fmt.Println("Error :", err)
 		return nil, err
 	}
 
@@ -67,7 +75,7 @@ func Scrape(url string) (Matches []*Match, err error) {
 	data := scrape.FindAll(root, scrape.ByTag(0x10502))
 	// matches := make([]*Match, len(data))
 	for _, match := range data {
-		fmt.Println("Match: ", match)
+		c.Infof("Match: %v", match)
 	}
 
 	return nil, nil

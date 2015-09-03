@@ -75,6 +75,8 @@ func Scrape(url string, r *http.Request) (Matches []*Match, err error) {
 	data := scrape.FindAll(root, scrape.ByTag(0x10502))
 	// matches := make([]*Match, len(data))
 	for _, match := range data {
+
+		// c.Infof doesn't exist???
 		c.Infof("Match: %v", match)
 	}
 

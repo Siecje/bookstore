@@ -6,6 +6,7 @@ import (
 
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/user"
 )
@@ -119,12 +120,25 @@ func Scrape(resp *HTTPResponse) {
 		return
 	}
 
+	// Looks for any `<tr>` element with the class
+	// `timetable-course-one` or `timetable-course-two`
+	matcher := func(n *html.Node) bool {
+		if n.DataAtom == atom.Tr {
+			return scrape.Attr(n, "class") == "timetable-course-two" || scrape.Attr(n, "class") == "timetable-course-one"
+		}
+		return false
+	}
+
 	// Yhat's package expects atomic values for tags, see
 	// https://godoc.org/golang.org/x/net/html/atom if you
 	// need a different tag.
-	data := scrape.FindAll(root, scrape.ByTag(0x10502))
+	data := scrape.FindAll(root, matcher)
 	for _, match := range data {
 		fmt.Println(scrape.Text(match))
+		// scrape.Text(match.FirstChild.NextSibling),             // ANTH-1032-FA
+		// scrape.Text(match.FirstChild.NextSibling.NextSibling), // Synonym: 64549
+
+		//)
 	}
 
 	return

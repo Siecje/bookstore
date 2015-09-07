@@ -181,3 +181,13 @@ func asyncHTTPGet(urls []string) []*HTTPResponse {
 
 	return responses
 }
+
+// ElasticSearcgh config for bulk index
+
+// Set the Elasticsearch Host to Connect to
+api.Domain = "localhost"
+// api.Port = "9300"
+
+indexer := core.NewBulkIndexerErrors(10, 60)
+done := make(chan bool)
+indexer.Run(done)

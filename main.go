@@ -134,12 +134,21 @@ func Scrape(resp *HTTPResponse) {
 	// https://godoc.org/golang.org/x/net/html/atom if you
 	// need a different tag.
 	data := scrape.FindAll(root, matcher)
-	for _, match := range data {
-		fmt.Println(scrape.Text(match))
-		// scrape.Text(match.FirstChild.NextSibling),             // ANTH-1032-FA
-		// scrape.Text(match.FirstChild.NextSibling.NextSibling), // Synonym: 64549
-
-		//)
+	for i, match := range data {
+		fmt.Println(
+			i,
+			scrape.Text(match),
+			scrape.Attr(match, "href"),
+			// scrape.Text(match.FirstChild.NextSibling),             // ANTH-1032-FA
+			// scrape.Text(match.FirstChild.NextSibling.NextSibling), // Synonym: 64549
+			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling),
+			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling),
+			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+		)
 	}
 
 	return

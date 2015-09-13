@@ -134,21 +134,64 @@ func Scrape(resp *HTTPResponse) {
 	// https://godoc.org/golang.org/x/net/html/atom if you
 	// need a different tag.
 	data := scrape.FindAll(root, matcher)
-	for i, match := range data {
-		fmt.Println(
-			i,
-			scrape.Text(match),
-			scrape.Attr(match, "href"),
-			// scrape.Text(match.FirstChild.NextSibling),             // ANTH-1032-FA
-			// scrape.Text(match.FirstChild.NextSibling.NextSibling), // Synonym: 64549
-			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling),
-			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling),
-			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-			// scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-		)
+	// Current course flag for looping, and counter for
+	// total courses
+	currentCourse := ""
+	counter := 0
+
+	// currentCourseCounter counts which row of the `<tr>`
+	// element we're in, so that we don't scrape out of
+	// bounds
+	currentCourseCounter := 0
+
+	// This actually works
+	for _, match := range data {
+
+		thisCourse := scrape.Attr(match, "class")
+
+		switch scrape.Attr(match, "class") {
+		case "timetable-course-two":
+			currentCourse = "timetable-course-two"
+		case "timetable-course-one":
+			currentCourse = "timetable-course-two"
+		default:
+			// Do nothing
+		}
+
+		currentCourseCounter++
+
+		if currentCourse != thisCourse {
+			counter++
+			fmt.Println("Counter:", counter)
+			currentCourseCounter = 0
+		}
+
+		switch currentCourseCounter {
+		case 1:
+			fmt.Println(1)
+		case 2:
+			fmt.Println(2)
+		case 3:
+			fmt.Println(3)
+		case 4:
+			fmt.Println(4)
+		default:
+			// Do nothing
+		}
+
+		// fmt.Println(
+		// 	i,
+		// 	scrape.Text(match),
+		// 	scrape.Text(match.FirstChild.NextSibling),             // ANTH-1032-FA
+		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling), // Synonym: 64549
+		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling),
+		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling),
+		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
+		// )
 	}
 
 	return

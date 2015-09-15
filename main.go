@@ -1,15 +1,12 @@
-package bookstore
+package main
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattbaird/elastigo"
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/user"
 )
 
 // urls are all the absolute URLs that need to be scraped
@@ -63,6 +60,8 @@ var urls = []string{
 	"http://timetable.lakeheadu.ca/2015FW_UG_TBAY/wome.html",
 }
 
+var testURL = []string{"http://timetable.lakeheadu.ca/2015FW_UG_TBAY/anth.html"}
+
 // Match is a result returned from scraping
 type Match struct {
 	CourseCode string // PHYS-1030-FA
@@ -73,34 +72,6 @@ type Match struct {
 	Term       string // Fall
 	Department string // Physics
 	YearLevel  string // 1
-}
-
-func init() {
-	http.HandleFunc("/", AuthHandler)
-	http.HandleFunc("/scrape", HomeHandler)
-}
-
-// HomeHandler handles the home page
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-
-	fmt.Fprint(w, "Home")
-}
-
-// AuthHandler allows a user to login and greets them
-func AuthHandler(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	u := user.Current(c)
-	if u == nil {
-		url, err := user.LoginURL(c, r.URL.String())
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Location", url)
-		w.WriteHeader(http.StatusFound)
-		return
-	}
-	fmt.Fprintf(w, "Hello, %v!", u)
 }
 
 // HTTPResponse is the struct that holds our response
@@ -170,8 +141,10 @@ func Scrape(resp *HTTPResponse) {
 		switch currentCourseCounter {
 		case 1:
 			courseCode := scrape.Text(match.FirstChild.NextSibling)
+			fmt.Println(courseCode)
 		case 2:
 			synonym := scrape.Text(match)
+			fmt.Println(synonym)
 		case 3:
 			fmt.Println(3)
 		case 4:
@@ -198,49 +171,6 @@ func Scrape(resp *HTTPResponse) {
 	return
 }
 
-func asyncHTTPGet(urls []string) []*HTTPResponse {
-
-	ch := make(chan *HTTPResponse)
-	responses := []*HTTPResponse{}
-
-	for _, url := range urls {
-		go func(url string) {
-			fmt.Printf("Fetching %s \n", url)
-			resp, err := http.Get(url)
-			if err != nil {
-				fmt.Println("Error: ", err)
-				ch <- &HTTPResponse{url, nil, err}
-			} else {
-				ch <- &HTTPResponse{url, resp, err}
-			}
-		}(url)
-	}
-
-	for {
-		select {
-		case r := <-ch:
-
-			// Scrape
-			Scrape(r)
-
-			responses = append(responses, r)
-			if len(responses) == len(urls) {
-				return responses
-			}
-
-			defer r.response.Body.Close()
-		}
-	}
-
-	return responses
+func main() {
+	Fetch(testURL)
 }
-
-// ElasticSearcgh config for bulk index
-
-// Set the Elasticsearch Host to Connect to
-api.Domain = "localhost"
-// api.Port = "9300"
-
-indexer := core.NewBulkIndexerErrors(10, 60)
-done := make(chan bool)
-indexer.Run(done)

@@ -171,7 +171,7 @@ func Scrape(resp *HTTPResponse) {
 		case 1:
 			courseCode := scrape.Text(match.FirstChild.NextSibling)
 		case 2:
-			synonym:= scrape.Text(match)
+			synonym := scrape.Text(match)
 		case 3:
 			fmt.Println(3)
 		case 4:

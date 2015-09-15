@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/bentranter/chalk"
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -136,7 +137,6 @@ func Scrape(resp *HTTPResponse) {
 
 		if currentCourse != thisCourse {
 			counter++
-			fmt.Println("Counter:", counter)
 			currentCourseCounter = 0
 		}
 
@@ -155,15 +155,15 @@ func Scrape(resp *HTTPResponse) {
 			// Get the course code (string, since there's
 			// no benefit from grabbing the int from it)
 			courseCode := scrape.Text(match.FirstChild.NextSibling)
-			fmt.Println(courseCode)
+			fmt.Println(chalk.White(courseCode))
 
 			// Get the course title
 			courseTitle := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling)
 			fmt.Println(courseTitle)
 
 			// Get the course type. It _should_ be only one
-			// of either `LEC` or `LAB`... is a boolean a
-			// better idea?
+			// of either `LEC`, `LAB`, or `WEB`... is a
+			// boolean a better idea?
 			courseType := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
 			fmt.Println(courseType)
 
@@ -206,25 +206,42 @@ func Scrape(resp *HTTPResponse) {
 				fmt.Println("Couldn't parse float: ", err)
 			}
 			fmt.Println(courseWeight)
+
 		case 2:
 			// Get the synonym, and turn it into an int
-			synonymRaw := scrape.Text(match.FirstChild.NextSibling)
-			synonymNumberString := strings.TrimLeft(synonymRaw, "Synonym: ")
-			synonym, err := strconv.ParseInt(synonymNumberString, 0, 64)
+			courseSynonymRaw := scrape.Text(match.FirstChild.NextSibling)
+			synonymNumStr := strings.TrimLeft(courseSynonymRaw, "Synonym: ")
+			courseSynonym, err := strconv.ParseInt(synonymNumStr, 0, 64)
 			if err != nil {
 				fmt.Println("Couldn't convert string")
 			}
-			fmt.Println(synonym)
+			fmt.Println(courseSynonym)
 
 			// Get the instructor name
-			instructorRaw := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling)
-			instructor := strings.TrimLeft(instructorRaw, "Instructor: ")
-			fmt.Println(instructor)
+			courseInstructorRaw := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling)
+			courseInstructor := strings.TrimLeft(courseInstructorRaw, "Instructor: ")
+			fmt.Println(courseInstructor)
 
 		case 3:
-			fmt.Println(3)
+			// Get the course textbook link. This one is
+			// annoying because you have to check to see
+			// if there is actually anything there for you
+			// to scrape.
+			if scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling) == "BOOKS" {
+				courseTextbookLink := scrape.Attr(match.FirstChild.NextSibling.NextSibling.NextSibling.FirstChild, "href")
+				fmt.Println(courseTextbookLink)
+
+				// Fun fact: Right here, you'll need to
+				// make a `GET` request to that URL and
+				// scrape the textbook page to get the
+				// textbook info.
+			} else {
+				fmt.Println("No textbook exists for this course yet.")
+			}
 		case 4:
-			fmt.Println(4)
+			fmt.Println("\n\n")
+			// There's a fourth row, but never anything in
+			// it
 		default:
 			// Do nothing
 		}

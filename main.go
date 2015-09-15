@@ -19,6 +19,6 @@ func main() {
 	Fetch(testURL)
 
 	// Listen and serve
-	http.ListenAndServe(":3000", nil)
 	fmt.Println("Serving HTTP on port 3000")
+	http.ListenAndServe(":3000", nil)
 }

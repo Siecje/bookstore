@@ -84,6 +84,25 @@ type Match struct {
 	YearLevel  string // 1
 }
 
+// Course holds all the data for a single course at
+// Lakehead. Some of these will need to change into maps
+// in order to have more usable data (ie, `Dates` should
+// become `StartDate` and `EndDate`).
+type Course struct {
+	Code         string  // PHYS-1030-FA
+	Title        string  // Intro Appl Phys I (Mechanics)
+	Type         string  // LEC
+	RoomNo       string  // RB 1046
+	Weekdays     string  // MWF
+	Times        string  // 1:00PM - 2:00PM
+	Dates        string  // 09/14/15 - 03/12/15
+	Weight       float64 // 0.5
+	Synonym      int     // 643369
+	Instructor   string  // Dr. Mark C. Gallagher
+	TextBookLink string  // https://textbooks.lakeheadu.ca...
+	TextBook     string  // some struct with textbook info
+}
+
 // HTTPResponse is the struct that holds our response
 // data
 type HTTPResponse struct {

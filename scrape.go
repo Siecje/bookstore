@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
@@ -141,8 +143,14 @@ func Scrape(resp *HTTPResponse) {
 			courseCode := scrape.Text(match.FirstChild.NextSibling)
 			fmt.Println(courseCode)
 		case 2:
-			synonym := scrape.Text(match)
+			synonymString := scrape.Text(match.FirstChild.NextSibling)
+			synonymNumberString := strings.TrimLeft(synonymString, "Synonym: ")
+			synonym, err := strconv.ParseInt(synonymNumberString, 0, 64)
+			if err != nil {
+				fmt.Println("Couldn't convert string")
+			}
 			fmt.Println(synonym)
+
 		case 3:
 			fmt.Println(3)
 		case 4:

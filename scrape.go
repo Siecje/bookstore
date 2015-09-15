@@ -62,6 +62,15 @@ var URLs = []string{
 	"http://timetable.lakeheadu.ca/2015FW_UG_TBAY/wome.html",
 }
 
+// CourseMatcher looks for any `<tr>` element with the
+// class `timetable-course-one` or `timetable-course-two`
+var CourseMatcher = func(n *html.Node) bool {
+	if n.DataAtom == atom.Tr {
+		return scrape.Attr(n, "class") == "timetable-course-two" || scrape.Attr(n, "class") == "timetable-course-one"
+	}
+	return false
+}
+
 // Match is a result returned from scraping
 type Match struct {
 	CourseCode string // PHYS-1030-FA
@@ -83,7 +92,8 @@ type HTTPResponse struct {
 }
 
 // Scrape finds and serializes the data from Lakehead's
-// site.
+// site. Eventually, it should return an array of
+// `Match` reponses.
 func Scrape(resp *HTTPResponse) {
 
 	root, err := html.Parse(resp.response.Body)
@@ -92,27 +102,19 @@ func Scrape(resp *HTTPResponse) {
 		return
 	}
 
-	// Looks for any `<tr>` element with the class
-	// `timetable-course-one` or `timetable-course-two`
-	matcher := func(n *html.Node) bool {
-		if n.DataAtom == atom.Tr {
-			return scrape.Attr(n, "class") == "timetable-course-two" || scrape.Attr(n, "class") == "timetable-course-one"
-		}
-		return false
-	}
-
 	// Yhat's package expects atomic values for tags, see
 	// https://godoc.org/golang.org/x/net/html/atom if you
 	// need a different tag.
-	data := scrape.FindAll(root, matcher)
+	data := scrape.FindAll(root, CourseMatcher)
+
 	// Current course flag for looping, and counter for
-	// total courses
+	// total courses.
 	currentCourse := ""
 	counter := 0
 
 	// currentCourseCounter counts which row of the `<tr>`
 	// element we're in, so that we don't scrape out of
-	// bounds
+	// bounds.
 	currentCourseCounter := 0
 
 	// This actually works
@@ -120,6 +122,7 @@ func Scrape(resp *HTTPResponse) {
 
 		thisCourse := scrape.Attr(match, "class")
 
+		// Set the courrentCourse flag
 		switch scrape.Attr(match, "class") {
 		case "timetable-course-two":
 			currentCourse = "timetable-course-two"
@@ -137,19 +140,86 @@ func Scrape(resp *HTTPResponse) {
 			currentCourseCounter = 0
 		}
 
-		// This actually works
+		// This actually works. Each case is a number that
+		// matches a row (a `<tr>` element) in the current
+		// course. Since attempting to scrape data that
+		// doesn't exist in a row results in an out of
+		// bounds error, this makes sure that we're never
+		// scraping where there is no data. Keep in mind
+		// scraping text from an element that has no value
+		// but does exist won't throw an error, but trying
+		// to scrape a non-existent attribute will throw an
+		// error.
 		switch currentCourseCounter {
 		case 1:
+			// Get the course code (string, since there's
+			// no benefit from grabbing the int from it)
 			courseCode := scrape.Text(match.FirstChild.NextSibling)
 			fmt.Println(courseCode)
+
+			// Get the course title
+			courseTitle := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling)
+			fmt.Println(courseTitle)
+
+			// Get the course type. It _should_ be only one
+			// of either `LEC` or `LAB`... is a boolean a
+			// better idea?
+			courseType := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(courseType)
+
+			// Get the course room number. It might be
+			// worth it to parse the first two numbers to
+			// get the building code, and then grab the
+			// rest of the entry to get the room number.
+			// Not sure how consistent all that is though.
+			courseRoomNo := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(courseRoomNo)
+
+			// Get the course days. This is the hardest one
+			// to parse (probably) because it needs to be
+			// seperated into an array of week days.
+			//
+			// @TODO: Parse into array of week days.
+			courseWeekdays := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(courseWeekdays)
+
+			// Get the course time. Needs to be parsed into
+			// a start time and end time - shouldn't be
+			// hard at all using `trim`.
+			//
+			// @TODO: Parse into start and end time.
+			courseTimes := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(courseTimes)
+
+			// Get the course dates. Needs to be parsed
+			// into a start and end date.
+			//
+			// @TODO: Parse into start and end date.
+			courseDates := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(courseDates)
+
+			// Get the credit weight. Gets parsed into a
+			// a float.
+			courseWeightRaw := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			courseWeight, err := strconv.ParseFloat(courseWeightRaw, 64)
+			if err != nil {
+				fmt.Println("Couldn't parse float: ", err)
+			}
+			fmt.Println(courseWeight)
 		case 2:
-			synonymString := scrape.Text(match.FirstChild.NextSibling)
-			synonymNumberString := strings.TrimLeft(synonymString, "Synonym: ")
+			// Get the synonym, and turn it into an int
+			synonymRaw := scrape.Text(match.FirstChild.NextSibling)
+			synonymNumberString := strings.TrimLeft(synonymRaw, "Synonym: ")
 			synonym, err := strconv.ParseInt(synonymNumberString, 0, 64)
 			if err != nil {
 				fmt.Println("Couldn't convert string")
 			}
 			fmt.Println(synonym)
+
+			// Get the instructor name
+			instructorRaw := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling)
+			instructor := strings.TrimLeft(instructorRaw, "Instructor: ")
+			fmt.Println(instructor)
 
 		case 3:
 			fmt.Println(3)
@@ -158,20 +228,6 @@ func Scrape(resp *HTTPResponse) {
 		default:
 			// Do nothing
 		}
-
-		// fmt.Println(
-		// 	i,
-		// 	scrape.Text(match),
-		// 	scrape.Text(match.FirstChild.NextSibling),             // ANTH-1032-FA
-		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling), // Synonym: 64549
-		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling),
-		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling),
-		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-		// 	scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling),
-		// )
 	}
 
 	return

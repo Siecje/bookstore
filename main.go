@@ -166,11 +166,12 @@ func Scrape(resp *HTTPResponse) {
 			currentCourseCounter = 0
 		}
 
+		// This actually works
 		switch currentCourseCounter {
 		case 1:
-			fmt.Println(1)
+			courseCode := scrape.Text(match.FirstChild.NextSibling)
 		case 2:
-			fmt.Println(2)
+			synonym:= scrape.Text(match)
 		case 3:
 			fmt.Println(3)
 		case 4:

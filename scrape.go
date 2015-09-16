@@ -12,6 +12,15 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+// CourseMatcher looks for any `<tr>` element with the
+// class `timetable-course-one` or `timetable-course-two`
+var CourseMatcher = func(n *html.Node) bool {
+	if n.DataAtom == atom.Tr {
+		return scrape.Attr(n, "class") == "timetable-course-two" || scrape.Attr(n, "class") == "timetable-course-one"
+	}
+	return false
+}
+
 // URLs are all the absolute URLs that need to be scraped
 var URLs = []string{
 	"http://timetable.lakeheadu.ca/2015FW_UG_TBAY/anth.html",
@@ -61,27 +70,6 @@ var URLs = []string{
 	"http://timetable.lakeheadu.ca/2015FW_UG_TBAY/visu.html",
 	"http://timetable.lakeheadu.ca/2015FW_UG_TBAY/wate.html",
 	"http://timetable.lakeheadu.ca/2015FW_UG_TBAY/wome.html",
-}
-
-// CourseMatcher looks for any `<tr>` element with the
-// class `timetable-course-one` or `timetable-course-two`
-var CourseMatcher = func(n *html.Node) bool {
-	if n.DataAtom == atom.Tr {
-		return scrape.Attr(n, "class") == "timetable-course-two" || scrape.Attr(n, "class") == "timetable-course-one"
-	}
-	return false
-}
-
-// Match is a result returned from scraping
-type Match struct {
-	CourseCode string // PHYS-1030-FA
-	Synonym    string // 643369
-	Title      string // Intro Appl Phys I (Mechanics)
-	Instructor string // Dr. Mark C. Gallagher
-	Books      string // Link?
-	Term       string // Fall
-	Department string // Physics
-	YearLevel  string // 1
 }
 
 // Course holds all the data for a single course at

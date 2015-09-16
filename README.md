@@ -1,6 +1,6 @@
 # Bookstore
 
-An app to help the LU Bookstore when LU's systems ineviatbly go down during the first two weeks.
+An app to help the LU Bookstore when LU's systems inevitably go down during the first two weeks.
 
 ### Running
 

@@ -85,7 +85,7 @@ type Course struct {
 	Times        string  // 1:00PM - 2:00PM
 	Dates        string  // 09/14/15 - 03/12/15
 	Weight       float64 // 0.5
-	Synonym      int     // 643369
+	Synonym      int64   // 643369
 	Instructor   string  // Dr. Mark C. Gallagher
 	TextBookLink string  // https://textbooks.lakeheadu.ca...
 	TextBook     string  // some struct with textbook info
@@ -147,6 +147,22 @@ func Scrape(resp *HTTPResponse) {
 			currentCourseCounter = 0
 		}
 
+		// Make a new Course struct to hold each match
+		course := &Course{
+			Code:         "",
+			Title:        "",
+			Type:         "",
+			RoomNo:       "",
+			Weekdays:     "",
+			Times:        "",
+			Dates:        "",
+			Weight:       0,
+			Synonym:      0,
+			Instructor:   "",
+			TextBookLink: "",
+			TextBook:     "",
+		}
+
 		// This actually works. Each case is a number that
 		// matches a row (a `<tr>` element) in the current
 		// course. Since attempting to scrape data that
@@ -161,73 +177,73 @@ func Scrape(resp *HTTPResponse) {
 		case 1:
 			// Get the course code (string, since there's
 			// no benefit from grabbing the int from it)
-			courseCode := scrape.Text(match.FirstChild.NextSibling)
-			fmt.Println(chalk.White(courseCode))
+			course.Code = scrape.Text(match.FirstChild.NextSibling)
+			fmt.Println(chalk.White(course.Code))
 
 			// Get the course title
-			courseTitle := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling)
-			fmt.Println(courseTitle)
+			course.Title = scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling)
+			fmt.Println(course.Title)
 
 			// Get the course type. It _should_ be only one
 			// of either `LEC`, `LAB`, or `WEB`... is a
 			// boolean a better idea?
-			courseType := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
-			fmt.Println(courseType)
+			course.Type = scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(course.Type)
 
 			// Get the course room number. It might be
 			// worth it to parse the first two numbers to
 			// get the building code, and then grab the
 			// rest of the entry to get the room number.
 			// Not sure how consistent all that is though.
-			courseRoomNo := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
-			fmt.Println(courseRoomNo)
+			course.RoomNo = scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(course.RoomNo)
 
 			// Get the course days. This is the hardest one
 			// to parse (probably) because it needs to be
 			// seperated into an array of week days.
 			//
 			// @TODO: Parse into array of week days.
-			courseWeekdays := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
-			fmt.Println(courseWeekdays)
+			course.Weekdays = scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(course.Weekdays)
 
 			// Get the course time. Needs to be parsed into
 			// a start time and end time - shouldn't be
 			// hard at all using `trim`.
 			//
 			// @TODO: Parse into start and end time.
-			courseTimes := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
-			fmt.Println(courseTimes)
+			course.Times = scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(course.Times)
 
 			// Get the course dates. Needs to be parsed
 			// into a start and end date.
 			//
 			// @TODO: Parse into start and end date.
-			courseDates := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
-			fmt.Println(courseDates)
+			course.Dates = scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
+			fmt.Println(course.Dates)
 
 			// Get the credit weight. Gets parsed into a
 			// a float.
 			courseWeightRaw := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling.NextSibling)
-			courseWeight, err := strconv.ParseFloat(courseWeightRaw, 64)
+			course.Weight, err = strconv.ParseFloat(courseWeightRaw, 64)
 			if err != nil {
 				fmt.Println("Couldn't parse float: ", err)
 			}
-			fmt.Println(courseWeight)
+			fmt.Println(course.Weight)
 
 		case 2:
 			// Get the synonym, and turn it into an int
 			courseSynonymRaw := scrape.Text(match.FirstChild.NextSibling)
 			synonymNumStr := strings.TrimLeft(courseSynonymRaw, "Synonym: ")
-			courseSynonym, err := strconv.ParseInt(synonymNumStr, 0, 64)
+			course.Synonym, err = strconv.ParseInt(synonymNumStr, 0, 64)
 			if err != nil {
 				fmt.Println("Couldn't convert string")
 			}
-			fmt.Println(courseSynonym)
+			fmt.Println(course.Synonym)
 
 			// Get the instructor name
 			courseInstructorRaw := scrape.Text(match.FirstChild.NextSibling.NextSibling.NextSibling)
-			courseInstructor := strings.TrimLeft(courseInstructorRaw, "Instructor: ")
-			fmt.Println(courseInstructor)
+			course.Instructor = strings.TrimLeft(courseInstructorRaw, "Instructor: ")
+			fmt.Println(course.Instructor)
 
 		case 3:
 			// Get the course textbook link. This one is
